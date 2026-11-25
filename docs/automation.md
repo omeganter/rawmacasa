@@ -45,6 +45,7 @@ rawmakase control create-collection --set "Kansai trip"
 rawmakase control create-collection "09-25 Nara" --parent 12 101 102 103
 rawmakase control add-to-collection 13 104 105
 rawmakase control remove-from-collection 13 101
+rawmakase control stack 104 105 106
 ```
 
 `photos --captured` takes a day, month or year (`2026-09-25`, `2026-09`,
@@ -63,6 +64,14 @@ message names the id of the one there. Adding a photo already in the
 collection, or taking out one not in it, leaves it as it is; the reply counts
 the photos `added` or `removed`. Smart collections are made and edited in the
 Library; renaming, moving and deleting collections stay there too.
+
+`stack` groups photos of one folder into a stack, as Group into Stack does:
+the first photo named is its top, the stack is collapsed, and photos already
+in a stack leave it. The JSON request takes several stacks at once
+(`"stacks": [[104, 105], [201, 202, 203]]`), made as one undoable step, all or
+none: an import uses it to stack an original with its edited version, or a
+burst. A stack of fewer than two photos, a photo named twice and photos of
+different folders are refused with `invalid_request`.
 
 `open` waits for decoding by default. `--no-wait` returns when opening starts;
 `--timeout` sets the wait limit. `photo next`, `photo prev` and `develop` initiate
@@ -252,6 +261,7 @@ use target guards for a sequence that must refer to the same edit.
 | `collections` | — | `collections`: sets, collections and smart collections, each set before its contents |
 | `create_collection` | `name`; optional `kind`: `collection` (the default) or `set`, `parent_id` (a set's id), `photo_ids` (a collection's photos) | `created`: the new collection or set, as `collections` lists it |
 | `add_to_collection`, `remove_from_collection` | `collection_id`, `photo_ids` (at least one) | `collection` as `collections` lists it, and the photos `added` and `removed` |
+| `stack` | `stacks`: one or more arrays of two or more photo ids of one folder, each stack's top first | `stacked`: how many `stacks` were made, of how many `photos` |
 | `presets` | optional `group` | Develop presets: `id`, `name`, `group`, `builtin`, `issue` |
 | `preset` | `id`, or `name` with optional `group`; optional `target` | `applied` preset and skipped settings |
 | `set` | `param`, finite `value`, optional `target` | Post-edit state |

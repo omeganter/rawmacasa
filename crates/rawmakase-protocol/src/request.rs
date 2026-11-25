@@ -122,6 +122,13 @@ pub enum Request {
         #[serde(deserialize_with = "some_photo_ids")]
         photo_ids: Vec<i64>,
     },
+    /// Groups catalog photos into stacks, as Group into Stack does: each list
+    /// one collapsed stack, its first photo the top.
+    Stack {
+        /// The stacks: each two or more photos of one folder, by catalog id.
+        #[serde(deserialize_with = "stacks")]
+        stacks: Vec<Vec<i64>>,
+    },
     /// The develop presets, of one group or all.
     Presets {
         /// Only the presets of this group, by its name as the Presets panel shows it.
@@ -505,6 +512,19 @@ fn some_photo_ids<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<i64>, D::Error>
         return Err(D::Error::custom("photo_ids must name at least one photo"));
     }
     Ok(ids)
+}
+fn stacks<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<Vec<i64>>, D::Error> {
+    let stacks: Vec<Vec<i64>> = or(d, "stacks must be an array of arrays of catalog photo ids")?;
+    if stacks.is_empty() {
+        return Err(D::Error::custom("stacks must name at least one stack"));
+    }
+    if stacks.iter().flatten().any(|id| *id < 1) {
+        return Err(D::Error::custom("stacks must hold catalog photo ids"));
+    }
+    if stacks.iter().any(|s| s.len() < 2) {
+        return Err(D::Error::custom("a stack takes two photos or more"));
+    }
+    Ok(stacks)
 }
 /// A capture day, month or year, `YYYY[-MM[-DD]]`, as the catalog's capture
 /// times begin.
@@ -896,7 +916,18 @@ mod tests {
                 photo_ids: vec![9],
             }
         );
+        assert_eq!(
+            parse(json!({"cmd":"stack","stacks":[[7,8],[3,2,1]]})).unwrap(),
+            Request::Stack {
+                stacks: vec![vec![7, 8], vec![3, 2, 1]],
+            }
+        );
         for (value, message) in [
+            (json!({"cmd":"stack"}), "missing field `stacks`"),
+            (json!({"cmd":"stack","stacks":[]}), "at least one stack"),
+            (json!({"cmd":"stack","stacks":[[7]]}), "two photos or more"),
+            (json!({"cmd":"stack","stacks":[[7,0]]}), "catalog photo ids"),
+            (json!({"cmd":"stack","stacks":[7,8]}), "array of arrays"),
             (json!({"cmd":"create_collection"}), "missing field `name`"),
             (
                 json!({"cmd":"create_collection","name":"a","kind":"smart"}),

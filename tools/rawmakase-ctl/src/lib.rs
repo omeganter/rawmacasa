@@ -106,6 +106,11 @@ enum Command {
         #[arg(required = true)]
         photo_ids: Vec<i64>,
     },
+    /// Group catalog photos of one folder into a stack, the first on top
+    Stack {
+        #[arg(required = true, num_args = 2..)]
+        photo_ids: Vec<i64>,
+    },
     /// List develop presets with their ids, groups and fit for the open photo
     Presets {
         /// Only the presets in this group (folder)
@@ -460,6 +465,9 @@ fn commands(command: &Command) -> Result<Vec<Request>, String> {
             collection_id: *collection_id,
             photo_ids: photo_ids.clone(),
         }],
+        Command::Stack { photo_ids } => vec![Request::Stack {
+            stacks: vec![photo_ids.clone()],
+        }],
         Command::Presets { group } => vec![Request::Presets {
             group: group.clone(),
         }],
@@ -694,6 +702,7 @@ pub fn run(cli: Cli) -> Result<(), String> {
         | Command::CreateCollection { .. }
         | Command::AddToCollection { .. }
         | Command::RemoveFromCollection { .. }
+        | Command::Stack { .. }
         | Command::Presets { .. }
         | Command::Preset { .. }
         | Command::Job { .. }
@@ -891,6 +900,10 @@ mod tests {
         assert_eq!(
             parse(&["add-to-collection", "5", "7", "8"]),
             [json!({"cmd": "add_to_collection", "collection_id": 5, "photo_ids": [7, 8]})]
+        );
+        assert_eq!(
+            parse(&["stack", "7", "8", "9"]),
+            [json!({"cmd": "stack", "stacks": [[7, 8, 9]]})]
         );
         assert_eq!(
             parse(&["remove-from-collection", "5", "8"]),

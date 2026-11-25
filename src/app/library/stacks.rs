@@ -654,6 +654,13 @@ impl Library {
         let summary = format!("Auto-Stacked · {}", plural(stacks.len(), "stack", "stacks"));
         self.record_stacks(summary, StackChange::Groups(stacks))
     }
+    /// Group into Stack by command, for each of `stacks`: its photos one
+    /// collapsed stack, the first its top. All or none, and one command for
+    /// Undo.
+    pub(in crate::app) fn group_into_stacks(&mut self, stacks: Vec<Vec<PhotoId>>) -> Result<()> {
+        let summary = format!("Grouped into {}", plural(stacks.len(), "Stack", "Stacks"));
+        self.record_stacks(summary, StackChange::Groups(stacks))
+    }
 }
 
 /// `seconds` as Time Between Stacks shows it: "0:01:30".

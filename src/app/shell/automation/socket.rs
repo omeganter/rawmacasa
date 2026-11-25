@@ -142,6 +142,12 @@ fn messages(request: &Value) -> commands::Result<Vec<Msg>> {
             photos: photo_ids.into_iter().map(PhotoId).collect(),
             add: false,
         },
+        Request::Stack { stacks } => Operation::Stack(
+            stacks
+                .into_iter()
+                .map(|s| s.into_iter().map(PhotoId).collect())
+                .collect(),
+        ),
         Request::Presets { group } => Operation::Presets { group },
         Request::Preset { id, name, group } => Operation::Preset(match (id, name) {
             (Some(id), _) => PresetTarget::Id(id),

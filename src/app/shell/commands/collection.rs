@@ -25,7 +25,7 @@ impl Editor {
                 "A collection set takes no photos; put them in a collection inside it",
             ));
         }
-        let photos = self.collection_change_allowed(photos)?;
+        let photos = self.catalog_change_allowed(photos)?;
         let library = self.library.as_mut().expect("checked above");
         if let Some(parent) = parent {
             match library
@@ -75,7 +75,7 @@ impl Editor {
         photos: Vec<PhotoId>,
         add: bool,
     ) -> Result<Outcome> {
-        let photos = self.collection_change_allowed(photos)?;
+        let photos = self.catalog_change_allowed(photos)?;
         let library = self.library.as_mut().expect("checked above");
         let Some(collection) = library.session.collections().iter().find(|c| c.id == id) else {
             return Err(Error::new("not_found", "No collection has this ID"));
@@ -110,11 +110,11 @@ impl Editor {
             removed,
         })
     }
-    /// What every change to collections asks first: an open catalog, nothing
+    /// What every change to collections, and to stacks, asks first: an open catalog, nothing
     /// busy, and only catalog photos. Returns the photos each once, in the
     /// order given, and ends a gesture in progress so the change is a step
     /// of its own.
-    fn collection_change_allowed(&mut self, photos: Vec<PhotoId>) -> Result<Vec<PhotoId>> {
+    pub(super) fn catalog_change_allowed(&mut self, photos: Vec<PhotoId>) -> Result<Vec<PhotoId>> {
         let Some(library) = self.library.as_ref() else {
             return Err(Error::new("no_catalog", "No catalog is open"));
         };

@@ -463,4 +463,6 @@ mod collection_tests;
 #[cfg(test)]
 mod mcp_tests;
 #[cfg(test)]
+mod stack_tests;
+#[cfg(test)]
 mod tests;

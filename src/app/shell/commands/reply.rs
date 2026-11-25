@@ -64,6 +64,12 @@ pub(in crate::app) struct Curves {
     pub green: ToneCurve,
     pub blue: ToneCurve,
 }
+/// What `stack` made.
+#[derive(Debug, Serialize)]
+pub(in crate::app) struct Stacked {
+    pub stacks: usize,
+    pub photos: usize,
+}
 #[derive(Debug, Serialize)]
 pub(in crate::app) struct Reply {
     pub state: State,
@@ -95,6 +101,10 @@ pub(in crate::app) enum Outcome {
         collection: crate::app::library::ListedCollection,
         added: usize,
         removed: usize,
+    },
+    /// Photos grouped into stacks: how many stacks, of how many photos.
+    Stacked {
+        stacked: Stacked,
     },
     Presets {
         presets: Vec<super::preset::PresetSummary>,

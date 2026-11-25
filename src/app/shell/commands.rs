@@ -6,6 +6,7 @@ mod parameter;
 mod preset;
 pub(in crate::app) mod registry;
 mod reply;
+mod stack;
 use crate::app::Module;
 use crate::app::shell::panels::{PanelChange, WorkspacePanel};
 use reply::{
@@ -153,6 +154,9 @@ pub(in crate::app) enum Operation {
         photos: Vec<PhotoId>,
         add: bool,
     },
+    /// Group into Stack for each list of photos. The first photo of a list
+    /// is its stack's top.
+    Stack(Vec<Vec<PhotoId>>),
     /// The develop presets, of one group or all.
     Presets {
         group: Option<String>,
@@ -602,6 +606,7 @@ impl Editor {
                         "create_collection",
                         "add_to_collection",
                         "remove_from_collection",
+                        "stack",
                         "presets",
                         "preset",
                         "curve",
@@ -681,6 +686,7 @@ impl Editor {
                 photos,
                 add,
             } => return self.command_change_collection(collection, photos, add),
+            Operation::Stack(stacks) => return self.command_stack(stacks),
             Operation::BuildPreviews(kind) => {
                 if self.activity.is_busy() || self.command_modal() {
                     return Err(Error::new(
@@ -943,6 +949,7 @@ impl Editor {
             | Operation::Collections
             | Operation::CreateCollection { .. }
             | Operation::ChangeCollection { .. }
+            | Operation::Stack(_)
             | Operation::Presets { .. }
             | Operation::Job(_)
             | Operation::Extension(_)
